@@ -1,0 +1,24 @@
+-- MySQL数据库初始化命令
+-- 请复制以下命令到MySQL命令行中执行
+
+-- 1. 创建数据库
+CREATE DATABASE IF NOT EXISTS material_platform DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- 2. 使用数据库
+USE material_platform;
+
+-- 3. 执行SQL脚本（使用正斜杠作为路径分隔符）
+SOURCE D:/code/hnau-material-platform/backend/src/main/resources/sql/full_schema.sql;
+
+-- 4. 验证管理员账号是否创建成功
+SELECT * FROM admin WHERE username = 'admin';
+SELECT * FROM user WHERE student_id = 'admin';
+
+-- 5. 验证用户表是否创建成功
+SELECT * FROM user LIMIT 5;
+
+-- 6. 验证资料表是否创建成功
+SELECT * FROM material LIMIT 5;
+
+-- 如果执行成功，您将看到管理员账号信息以及表结构验证结果
+-- 然后您可以使用 mvn spring-boot:run 命令启动后端服务

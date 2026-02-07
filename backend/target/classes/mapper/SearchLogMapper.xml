@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hnau.platform.mapper.SearchLogMapper">
+
+    <!-- 统计近24小时搜索关键词热度 -->
+    <select id="getHotKeywords24h" resultType="java.util.Map">
+        SELECT 
+            keyword, 
+            COUNT(DISTINCT CASE WHEN user_id IS NOT NULL THEN user_id ELSE ip_address END) as count 
+        FROM 
+            search_log 
+        WHERE 
+            search_time >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            AND is_valid = true
+        GROUP BY 
+            keyword 
+        ORDER BY 
+            count DESC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 统计近7天搜索关键词热度 -->
+    <select id="getHotKeywords7d" resultType="java.util.Map">
+        SELECT 
+            keyword, 
+            COUNT(DISTINCT CASE WHEN user_id IS NOT NULL THEN user_id ELSE ip_address END) as count 
+        FROM 
+            search_log 
+        WHERE 
+            search_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            AND is_valid = true
+        GROUP BY 
+            keyword 
+        ORDER BY 
+            count DESC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 获取用户最近搜索历史 -->
+    <select id="getUserSearchHistory" resultType="com.hnau.platform.entity.SearchLog">
+        SELECT 
+            * 
+        FROM 
+            search_log 
+        WHERE 
+            user_id = #{userId}
+        ORDER BY 
+            search_time DESC 
+        LIMIT #{limit}
+    </select>
+
+    <!-- 检查用户在指定时间内是否重复搜索同一关键词 -->
+    <select id="checkDuplicateSearch" resultType="java.lang.Integer">
+        SELECT 
+            COUNT(*) 
+        FROM 
+            search_log 
+        WHERE 
+            (user_id = #{userId} OR ip_address = #{ipAddress})
+            AND keyword = #{keyword}
+            AND search_time >= DATE_SUB(NOW(), INTERVAL #{minutes} MINUTE)
+    </select>
+
+    <!-- 统计关键词在指定时间内的搜索次数 -->
+    <select id="countKeywordSearch" resultType="java.lang.Integer">
+        SELECT 
+            COUNT(*) 
+        FROM 
+            search_log 
+        WHERE 
+            keyword = #{keyword}
+            AND search_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+    </select>
+
+</mapper>

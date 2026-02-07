@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试</title>
+</head>
+<body>
+    <h1>API测试</h1>
+    <button onclick="testCollectAPI()">测试收藏API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testCollectAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '测试中...';
+
+            try {
+                const response = await fetch('http://localhost:8082/api/question/collect?userId=1&questionId=1', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h2>测试结果：</h2>
+                    <p>状态码：${response.status}</p>
+                    <p>响应内容：${JSON.stringify(data, null, 2)}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h2>测试失败：</h2>
+                    <p>错误信息：${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
