@@ -377,77 +377,6 @@
   </div>
 </template>
 
-<style scoped>
-.admin-container {
-  display: flex;
-  min-height: 100vh;
-}
-
-.admin-menu {
-  width: 200px;
-  background-color: #f5f7fa;
-  border-right: 1px solid #e4e7ed;
-}
-
-.admin-content {
-  flex: 1;
-  padding: 20px;
-  background-color: #fff;
-}
-
-.user-upload-section {
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.user-upload {
-  margin-right: 15px;
-}
-
-.ml-4 {
-  margin-left: 15px;
-}
-
-.login-records {
-  margin-top: 30px;
-}
-
-.el-alert {
-  margin: 20px 0;
-}
-
-/* 响应式布局 */
-@media (max-width: 768px) {
-  .admin-container {
-    flex-direction: column;
-  }
-  
-  .admin-menu {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e4e7ed;
-  }
-  
-  .user-upload-section {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .user-upload {
-    margin-bottom: 15px;
-  }
-  
-  .ml-4 {
-    margin-left: 0;
-  }
-}
-</style>
-
 <script setup>
 import { ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -798,8 +727,6 @@ const handleFileChange = (file, fileList) => {
   uploadMessage.value = ''
 }
 
-
-
 const uploadUsers = async () => {
   if (!uploadedFile.value) {
     uploadMessage.value = '请先选择Excel文件'
@@ -869,7 +796,8 @@ const uploadUsers = async () => {
         
         // 跳过标题行
         const firstCell = String(row[0] || '').trim()
-        if (firstCell === '学号' || firstCell === '姓名' || firstCell === '年级' || firstCell === '专业' || firstCell === '学院' || firstCell === '班级') {
+        const commonHeaders = ['学号', '姓名', '年级', '专业', '学院', '班级', 'class', 'grade', 'major', 'college', 'student_id', 'studentid']
+        if (commonHeaders.includes(firstCell)) {
           console.log(`跳过标题行:`, row)
           return { studentId: '', name: '', grade: '', major: '', college: '', className: '' }
         }
@@ -897,6 +825,20 @@ const uploadUsers = async () => {
             } else if (!name && value && !/^\d+$/.test(value)) {
               name = value
               console.log(`提取姓名: ${name}`)
+            }
+            
+            // 额外处理：直接从原始值中提取可能的学号和姓名
+            if (!studentId || !name) {
+              const valueStr = String(value || '').trim()
+              if (valueStr) {
+                // 尝试匹配数字开头后跟中文的模式
+                const combinedMatch = valueStr.match(/^(\d+)([\u4e00-\u9fa5]+)$/)
+                if (combinedMatch && combinedMatch.length === 3) {
+                  studentId = combinedMatch[1]
+                  name = combinedMatch[2]
+                  console.log(`额外处理 - 从"${valueStr}"分离出学号: "${studentId}", 姓名: "${name}"`)
+                }
+              }
             }
           } else {
             // 提取其他信息
@@ -951,6 +893,8 @@ const uploadUsers = async () => {
             [1, 0, 2, 3, 4, 5], // 姓名、学号、年级、专业、学院、班级
             [0, 1, 3, 2, 4, 5], // 学号、姓名、专业、年级、学院、班级
             [0, 1, 2, 4, 3, 5], // 学号、姓名、年级、学院、专业、班级
+            [0, 1, 4, 2, 3, 5], // 学号、姓名、学院、年级、专业、班级
+            [0, 1, 5, 2, 3, 4], // 学号、姓名、班级、年级、专业、学院
           ]
           
           for (const order of possibleOrders) {
@@ -1562,7 +1506,7 @@ onUnmounted(() => {
   }
   console.log('Admin组件已卸载，定时器已清理')
 })
-</style>
+</script>
 
 <style scoped>
 .admin-container {
