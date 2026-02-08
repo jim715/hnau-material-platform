@@ -809,35 +809,21 @@ const uploadUsers = async () => {
           
           if (!studentId || !name) {
             // 处理学号和姓名在同一单元格的情况，如"54455张三"
-            if (value && /^\s*\d+\s*[\u4e00-\u9fa5]+\s*$/.test(value)) {
-              console.log(`检测到学号和姓名在同一单元格: "${value}"`)
-              // 分离数字和中文
-              const numberMatch = value.match(/\d+/)
-              const chineseMatch = value.match(/[\u4e00-\u9fa5]+/)
-              if (numberMatch && chineseMatch) {
-                studentId = numberMatch[0]
-                name = chineseMatch[0]
-                console.log(`从同一单元格分离 - 学号: "${studentId}", 姓名: "${name}"`)
-              }
-            } else if (!studentId && /^\d+$/.test(value)) {
-              studentId = value
-              console.log(`提取学号: ${studentId}`)
-            } else if (!name && value && !/^\d+$/.test(value)) {
-              name = value
-              console.log(`提取姓名: ${name}`)
-            }
-            
-            // 额外处理：直接从原始值中提取可能的学号和姓名
-            if (!studentId || !name) {
+            if (value) {
               const valueStr = String(value || '').trim()
-              if (valueStr) {
-                // 尝试匹配数字开头后跟中文的模式
-                const combinedMatch = valueStr.match(/^(\d+)([\u4e00-\u9fa5]+)$/)
-                if (combinedMatch && combinedMatch.length === 3) {
-                  studentId = combinedMatch[1]
-                  name = combinedMatch[2]
-                  console.log(`额外处理 - 从"${valueStr}"分离出学号: "${studentId}", 姓名: "${name}"`)
-                }
+              // 尝试匹配数字开头后跟中文的模式，支持数字和中文之间有空格
+              const combinedMatch = valueStr.match(/^(\d+)\s*([\u4e00-\u9fa5]+)$/)
+              if (combinedMatch && combinedMatch.length === 3) {
+                console.log(`检测到学号和姓名在同一单元格: "${valueStr}"`)
+                studentId = combinedMatch[1]
+                name = combinedMatch[2]
+                console.log(`从同一单元格分离 - 学号: "${studentId}", 姓名: "${name}"`)
+              } else if (!studentId && /^\d+$/.test(valueStr)) {
+                studentId = valueStr
+                console.log(`提取学号: ${studentId}`)
+              } else if (!name && valueStr && !/^\d+$/.test(valueStr)) {
+                name = valueStr
+                console.log(`提取姓名: ${name}`)
               }
             }
           } else {
